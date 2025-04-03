@@ -21,7 +21,7 @@ const AnimeSection = ({ title, viewAllLink, animeList }: AnimeSectionProps) => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">{title}</h2>
         {viewAllLink && (
-          <a href={viewAllLink} className="text-sm text-anime-primary hover:text-anime-accent">
+          <a href={viewAllLink} className="text-sm text-[#9b87f5] hover:text-[#F43F5E]">
             View All
           </a>
         )}
@@ -33,7 +33,7 @@ const AnimeSection = ({ title, viewAllLink, animeList }: AnimeSectionProps) => {
             key={anime.id}
             id={anime.id}
             title={anime.title}
-            image={anime.image}
+            image={anime.image || "https://cdn.myanimelist.net/images/anime/1015/138006.jpg"}
             episode={anime.episode}
             rating={anime.rating}
             isCompleted={anime.isCompleted}

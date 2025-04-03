@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Search, Shuffle, Bell, User, Menu } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { Button } from './ui/button';
 
 type HeaderProps = {
   toggleSidebar?: () => void;
@@ -35,8 +36,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         {/* Logo */}
         <div className="flex-shrink-0 lg:w-1/4">
           <a href="/" className="flex items-center">
-            <span className="text-anime-primary font-bold text-xl">Anime</span>
-            <span className="text-anime-accent font-bold text-xl">Flow</span>
+            <span className="text-[#9b87f5] font-bold text-xl">Anime</span>
+            <span className="text-[#F43F5E] font-bold text-xl">Flow</span>
           </a>
         </div>
         
@@ -49,22 +50,22 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                 placeholder="Search anime..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 rounded-l-md bg-anime-muted/60 text-anime-foreground border-r-0 border border-anime-muted focus:outline-none focus:ring-1 focus:ring-anime-primary"
+                className="w-full px-4 py-2 rounded-l-md bg-anime-muted/60 text-anime-foreground border-r-0 border border-anime-muted focus:outline-none focus:ring-1 focus:ring-[#9b87f5]"
               />
-              <button
+              <Button
                 type="submit"
-                className="px-3 bg-anime-muted/60 border border-l-0 border-anime-muted rounded-r-none rounded-md hover:bg-anime-muted"
+                variant="secondary"
+                className="rounded-none border border-anime-muted border-x-0"
               >
                 <Search size={18} className="text-anime-foreground" />
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={handleRandomAnime}
-                className="px-3 bg-anime-primary rounded-r-md hover:bg-anime-secondary transition-colors"
-                title="Random Anime"
+                className="rounded-l-none rounded-r-md bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
               >
-                <Shuffle size={18} className="text-white" />
-              </button>
+                <Shuffle size={18} />
+              </Button>
             </div>
           </form>
         </div>
@@ -89,22 +90,22 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               placeholder="Search anime..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 rounded-l-md bg-anime-muted/60 text-anime-foreground border-r-0 border border-anime-muted focus:outline-none focus:ring-1 focus:ring-anime-primary"
+              className="w-full px-4 py-2 rounded-l-md bg-anime-muted/60 text-anime-foreground border-r-0 border border-anime-muted focus:outline-none focus:ring-1 focus:ring-[#9b87f5]"
             />
-            <button
+            <Button
               type="submit"
-              className="px-3 bg-anime-muted/60 border border-l-0 border-anime-muted rounded-r-none rounded-md hover:bg-anime-muted"
+              variant="secondary"
+              className="rounded-none border border-anime-muted border-x-0"
             >
               <Search size={18} className="text-anime-foreground" />
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={handleRandomAnime}
-              className="px-3 bg-anime-primary rounded-r-md hover:bg-anime-secondary transition-colors"
-              title="Random Anime"
+              className="rounded-l-none rounded-r-md bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
             >
-              <Shuffle size={18} className="text-white" />
-            </button>
+              <Shuffle size={18} />
+            </Button>
           </div>
         </form>
       </div>

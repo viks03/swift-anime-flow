@@ -67,22 +67,22 @@
   }
   
   .anime-badge {
-    @apply inline-flex items-center rounded-md bg-anime-primary px-2 py-1 text-xs font-medium text-white;
+    @apply inline-flex items-center rounded-md bg-[#9b87f5] px-2 py-1 text-xs font-medium text-white;
   }
   
   .sidebar-link {
-    @apply flex items-center gap-3 rounded-md p-2 text-sm font-medium transition-colors hover:bg-anime-primary hover:text-white;
+    @apply flex items-center gap-3 rounded-md p-2 text-sm font-medium transition-colors hover:bg-[#9b87f5] hover:text-white;
   }
   
   .sidebar-link.active {
-    @apply bg-anime-primary text-white;
+    @apply bg-[#9b87f5] text-white;
   }
   
   .mobile-nav-link {
-    @apply flex flex-col items-center justify-center p-2 text-xs font-medium transition-colors hover:text-anime-primary;
+    @apply flex flex-col items-center justify-center p-2 text-xs font-medium transition-colors hover:text-[#9b87f5];
   }
   
   .mobile-nav-link.active {
-    @apply text-anime-primary;
+    @apply text-[#9b87f5];
   }
 }

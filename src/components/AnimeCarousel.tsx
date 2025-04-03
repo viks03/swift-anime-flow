@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Star } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { Button } from './ui/button';
 
 type AnimeSlide = {
   id: number;
@@ -18,7 +19,7 @@ const featuredAnime: AnimeSlide[] = [
     id: 1,
     title: "Attack on Titan: Final Season",
     description: "Eren and the Survey Corps wage one final battle to complete their mission and save humanity.",
-    image: "https://via.placeholder.com/1200x500/171923/E2E8F0?text=Attack+on+Titan",
+    image: "https://cdn.myanimelist.net/images/anime/1948/120625.jpg",
     episodeLength: "24 min",
     quality: "HD",
     rating: 9.8,
@@ -27,7 +28,7 @@ const featuredAnime: AnimeSlide[] = [
     id: 2,
     title: "Demon Slayer: Entertainment District Arc",
     description: "Tanjiro and his friends join Tengen Uzui on a mission in the Entertainment District to hunt demons.",
-    image: "https://via.placeholder.com/1200x500/171923/E2E8F0?text=Demon+Slayer",
+    image: "https://cdn.myanimelist.net/images/anime/1908/120036.jpg",
     episodeLength: "26 min",
     quality: "4K",
     rating: 9.5,
@@ -36,7 +37,7 @@ const featuredAnime: AnimeSlide[] = [
     id: 3,
     title: "Jujutsu Kaisen: The Movie",
     description: "A prequel story focusing on Yuta Okkotsu, a high school student who becomes a sorcerer and seeks to control the cursed spirit of his childhood friend.",
-    image: "https://via.placeholder.com/1200x500/171923/E2E8F0?text=Jujutsu+Kaisen",
+    image: "https://cdn.myanimelist.net/images/anime/1121/119044.jpg",
     episodeLength: "105 min",
     quality: "HD",
     rating: 9.7,
@@ -83,10 +84,10 @@ const AnimeCarousel = () => {
               <span className="anime-badge">{anime.episodeLength}</span>
               <span className="anime-badge">{anime.quality}</span>
             </div>
-            <button className="bg-anime-primary hover:bg-anime-secondary text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors">
+            <Button className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white">
               <Play className="h-4 w-4" />
               Watch Now
-            </button>
+            </Button>
           </div>
         </div>
       ))}
@@ -100,7 +101,7 @@ const AnimeCarousel = () => {
             className={cn(
               "w-2 h-2 rounded-full transition-all",
               index === currentSlide
-                ? "bg-anime-primary w-6"
+                ? "bg-[#9b87f5] w-6"
                 : "bg-gray-400 bg-opacity-50"
             )}
           />
