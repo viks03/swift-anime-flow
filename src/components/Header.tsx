@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
-import { Search, Shuffle, Bell, User, Menu } from 'lucide-react';
+import { Search, Shuffle } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Button } from './ui/button';
+import NotificationDropdown from './NotificationDropdown';
+import LoginModal from './LoginModal';
 
 type HeaderProps = {
   toggleSidebar?: () => void;
@@ -30,7 +32,11 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           onClick={toggleSidebar}
           className="lg:hidden p-2 rounded-md text-anime-foreground hover:bg-anime-muted/20"
         >
-          <Menu size={24} />
+          <div className="w-6 h-5 flex flex-col justify-between">
+            <span className="w-full h-0.5 bg-anime-foreground rounded-full"></span>
+            <span className="w-full h-0.5 bg-anime-foreground rounded-full"></span>
+            <span className="w-full h-0.5 bg-anime-foreground rounded-full"></span>
+          </div>
         </button>
         
         {/* Logo */}
@@ -55,29 +61,27 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               <Button
                 type="submit"
                 variant="secondary"
-                className="rounded-none border border-anime-muted border-x-0"
+                className="rounded-r-md border border-anime-muted border-l-0 bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
               >
-                <Search size={18} className="text-anime-foreground" />
-              </Button>
-              <Button
-                type="button"
-                onClick={handleRandomAnime}
-                className="rounded-l-none rounded-r-md bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
-              >
-                <Shuffle size={18} />
+                <Search size={18} className="text-white" />
               </Button>
             </div>
           </form>
+          
+          <Button
+            type="button"
+            onClick={handleRandomAnime}
+            className="ml-3 bg-[#9b87f5] hover:bg-[#7E69AB] text-white rounded-md"
+          >
+            <Shuffle size={18} className="mr-1" />
+            <span className="hidden sm:inline">Random</span>
+          </Button>
         </div>
         
         {/* User Actions */}
-        <div className="flex items-center justify-end lg:w-1/4 space-x-4">
-          <button className="p-2 rounded-full hover:bg-anime-muted/20">
-            <Bell size={20} className="text-anime-foreground" />
-          </button>
-          <button className="p-2 rounded-full hover:bg-anime-muted/20">
-            <User size={20} className="text-anime-foreground" />
-          </button>
+        <div className="flex items-center justify-end lg:w-1/4 space-x-2">
+          <NotificationDropdown />
+          <LoginModal />
         </div>
       </div>
       
@@ -95,19 +99,20 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <Button
               type="submit"
               variant="secondary"
-              className="rounded-none border border-anime-muted border-x-0"
+              className="rounded-r-md border border-anime-muted border-l-0 bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
             >
-              <Search size={18} className="text-anime-foreground" />
-            </Button>
-            <Button
-              type="button"
-              onClick={handleRandomAnime}
-              className="rounded-l-none rounded-r-md bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
-            >
-              <Shuffle size={18} />
+              <Search size={18} className="text-white" />
             </Button>
           </div>
         </form>
+        <Button
+          type="button"
+          onClick={handleRandomAnime}
+          className="mt-2 w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white rounded-md"
+        >
+          <Shuffle size={18} className="mr-1" />
+          <span>Random Anime</span>
+        </Button>
       </div>
     </header>
   );
