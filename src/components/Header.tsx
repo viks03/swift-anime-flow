@@ -56,7 +56,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                 placeholder="Search anime..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 rounded-l-md bg-anime-muted/60 text-anime-foreground border-r-0 border border-anime-muted focus:outline-none focus:ring-1 focus:ring-[#9b87f5]"
+                className="w-full px-4 py-2 rounded-l-md bg-anime-muted/60 text-anime-foreground border border-anime-muted focus:outline-none focus:ring-1 focus:ring-[#9b87f5]"
               />
               <Button
                 type="submit"
@@ -72,9 +72,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             type="button"
             onClick={handleRandomAnime}
             className="ml-3 bg-[#9b87f5] hover:bg-[#7E69AB] text-white rounded-md"
+            aria-label="Random Anime"
           >
-            <Shuffle size={18} className="mr-1" />
-            <span className="hidden sm:inline">Random</span>
+            <Shuffle size={18} />
           </Button>
         </div>
         
@@ -94,7 +94,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               placeholder="Search anime..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 rounded-l-md bg-anime-muted/60 text-anime-foreground border-r-0 border border-anime-muted focus:outline-none focus:ring-1 focus:ring-[#9b87f5]"
+              className="w-full px-4 py-2 rounded-l-md bg-anime-muted/60 text-anime-foreground border border-anime-muted focus:outline-none focus:ring-1 focus:ring-[#9b87f5]"
             />
             <Button
               type="submit"
@@ -109,9 +109,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           type="button"
           onClick={handleRandomAnime}
           className="mt-2 w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white rounded-md"
+          aria-label="Random Anime"
         >
-          <Shuffle size={18} className="mr-1" />
-          <span>Random Anime</span>
+          <Shuffle size={18} />
         </Button>
       </div>
     </header>
