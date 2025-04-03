@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Shuffle } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Button } from './ui/button';
 import NotificationDropdown from './NotificationDropdown';
@@ -17,11 +17,6 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     e.preventDefault();
     console.log('Searching for:', searchQuery);
     // Implement search functionality
-  };
-
-  const handleRandomAnime = () => {
-    console.log('Finding random anime');
-    // Implement random anime functionality
   };
 
   return (
@@ -48,34 +43,25 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         </div>
         
         {/* Search Bar */}
-        <div className="hidden md:flex flex-grow max-w-md mx-4">
+        <div className="hidden md:flex flex-grow max-w-xl mx-4">
           <form onSubmit={handleSearch} className="flex w-full">
-            <div className="relative flex w-full">
+            <div className="relative flex w-full shadow-sm rounded-md overflow-hidden">
               <input
                 type="text"
                 placeholder="Search anime..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 rounded-l-md bg-anime-muted/60 text-anime-foreground border border-anime-muted focus:outline-none focus:ring-1 focus:ring-[#9b87f5]"
+                className="w-full px-4 py-2 border-0 bg-anime-muted/60 text-anime-foreground focus:outline-none focus:ring-0 rounded-l-md"
               />
               <Button
                 type="submit"
                 variant="secondary"
-                className="rounded-r-md border border-anime-muted border-l-0 bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+                className="rounded-r-md border-0 bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
               >
                 <Search size={18} className="text-white" />
               </Button>
             </div>
           </form>
-          
-          <Button
-            type="button"
-            onClick={handleRandomAnime}
-            className="ml-3 bg-[#9b87f5] hover:bg-[#7E69AB] text-white rounded-md"
-            aria-label="Random Anime"
-          >
-            <Shuffle size={18} />
-          </Button>
         </div>
         
         {/* User Actions */}
@@ -88,31 +74,23 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       {/* Mobile Search - appears below header on small screens */}
       <div className="md:hidden px-4 pb-3">
         <form onSubmit={handleSearch} className="flex w-full">
-          <div className="relative flex w-full">
+          <div className="relative flex w-full shadow-sm rounded-md overflow-hidden">
             <input
               type="text"
               placeholder="Search anime..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 rounded-l-md bg-anime-muted/60 text-anime-foreground border border-anime-muted focus:outline-none focus:ring-1 focus:ring-[#9b87f5]"
+              className="w-full px-4 py-2 border-0 bg-anime-muted/60 text-anime-foreground focus:outline-none focus:ring-0 rounded-l-md"
             />
             <Button
               type="submit"
               variant="secondary"
-              className="rounded-r-md border border-anime-muted border-l-0 bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+              className="rounded-r-md border-0 bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
             >
               <Search size={18} className="text-white" />
             </Button>
           </div>
         </form>
-        <Button
-          type="button"
-          onClick={handleRandomAnime}
-          className="mt-2 w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white rounded-md"
-          aria-label="Random Anime"
-        >
-          <Shuffle size={18} />
-        </Button>
       </div>
     </header>
   );

@@ -1,28 +1,39 @@
 
 import React from 'react';
-import { Home, Clock, TrendingUp, History, User, Settings } from 'lucide-react';
+import { Home, Clock, TrendingUp, History, User, Settings, Shuffle } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 type NavItem = {
   name: string;
   icon: React.ElementType;
   active?: boolean;
+  onClick?: () => void;
 };
 
 type SidebarProps = {
   isOpen: boolean;
 };
 
-const navItems: NavItem[] = [
-  { name: 'Home', icon: Home, active: true },
-  { name: 'Latest', icon: Clock },
-  { name: 'Trending', icon: TrendingUp },
-  { name: 'History', icon: History },
-  { name: 'Profile', icon: User },
-  { name: 'Settings', icon: Settings },
-];
-
 const Sidebar = ({ isOpen }: SidebarProps) => {
+  const handleRandomAnime = () => {
+    console.log('Finding random anime');
+    // Implement random anime functionality
+  };
+
+  const navItems: NavItem[] = [
+    { name: 'Home', icon: Home, active: true },
+    { name: 'Latest', icon: Clock },
+    { name: 'Trending', icon: TrendingUp },
+    { name: 'History', icon: History },
+    { name: 'Profile', icon: User },
+    { name: 'Settings', icon: Settings },
+    { 
+      name: 'Random Anime', 
+      icon: Shuffle, 
+      onClick: handleRandomAnime 
+    },
+  ];
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -36,6 +47,12 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
               <li key={item.name}>
                 <a
                   href="#"
+                  onClick={(e) => {
+                    if (item.onClick) {
+                      e.preventDefault();
+                      item.onClick();
+                    }
+                  }}
                   className={cn("sidebar-link", item.active && "active")}
                 >
                   <item.icon className="h-5 w-5" />
@@ -50,10 +67,16 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
       {/* Mobile Navigation Bar - Fixed at bottom */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-anime-background border-t border-anime-muted/50">
         <div className="grid grid-cols-6">
-          {navItems.map((item) => (
+          {navItems.slice(0, 6).map((item) => (
             <a
               key={item.name}
               href="#"
+              onClick={(e) => {
+                if (item.onClick) {
+                  e.preventDefault();
+                  item.onClick();
+                }
+              }}
               className={cn("mobile-nav-link", item.active && "active")}
             >
               <item.icon className="h-5 w-5 mb-1" />
