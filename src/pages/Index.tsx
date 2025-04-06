@@ -5,9 +5,26 @@ import AnimeCarousel from '@/components/AnimeCarousel';
 import AnimeSection from '@/components/AnimeSection';
 import { trendingAnime, completedAnime } from '@/data/animeData';
 import { useAnimeData } from '@/hooks/useAnimeData';
+import { toast } from '@/components/ui/sonner';
 
 const Index = () => {
-  const { data: animeData, isLoading, error } = useAnimeData();
+  const { data, isLoading, error } = useAnimeData();
+  
+  // Extract the latestEpisodeAnimes from the nested data structure
+  const latestEpisodeAnimes = data?.data?.latestEpisodeAnimes;
+  
+  // Log data for debugging
+  React.useEffect(() => {
+    if (data) {
+      console.log('Data structure:', data);
+      console.log('Latest Episode Animes:', latestEpisodeAnimes);
+    }
+    
+    if (error) {
+      toast.error('Failed to load anime data');
+      console.error('Error fetching anime data:', error);
+    }
+  }, [data, error, latestEpisodeAnimes]);
 
   return (
     <Layout>
@@ -20,7 +37,7 @@ const Index = () => {
             <AnimeSection 
               title="Recently Updated" 
               viewAllLink="#"
-              animeList={animeData?.latestEpisodeAnimes}
+              animeList={latestEpisodeAnimes}
               isLoading={isLoading}
               error={error as Error}
             />

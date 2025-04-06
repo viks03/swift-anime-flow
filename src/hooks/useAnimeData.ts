@@ -1,10 +1,9 @@
 
-import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 export type AnimeEpisode = {
-  sub: number;
-  dub: number;
+  sub: number | null;
+  dub: number | null;
 };
 
 export type AnimeItem = {
@@ -19,18 +18,26 @@ export type AnimeItem = {
 };
 
 export type AnimeApiResponse = {
-  latestEpisodeAnimes: AnimeItem[];
-  spotlightAnimes: any[];
-  trendingAnimes: any[];
-  // Add other fields as needed
+  success: boolean;
+  data: {
+    latestEpisodeAnimes: AnimeItem[];
+    spotlightAnimes: any[];
+    trendingAnimes: any[];
+    // Add other fields as needed
+  };
 };
 
 const fetchAnimeData = async (): Promise<AnimeApiResponse> => {
+  console.log('Fetching anime data...');
   const response = await fetch('https://aniwatch-api-jet.vercel.app/api/v2/hianime/home');
+  
   if (!response.ok) {
     throw new Error('Failed to fetch anime data');
   }
-  return response.json();
+  
+  const data = await response.json();
+  console.log('API Response:', data);
+  return data;
 };
 
 export const useAnimeData = () => {

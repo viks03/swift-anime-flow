@@ -20,7 +20,7 @@ const AnimeSection = ({ title, viewAllLink, animeList, isLoading, error }: Anime
           <h2 className="text-xl font-bold">{title}</h2>
         </div>
         <div className="p-4 bg-red-500/10 rounded-md text-red-500">
-          Error loading anime data. Please try again later.
+          Error loading anime data: {error.message}
         </div>
       </div>
     );
