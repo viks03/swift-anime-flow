@@ -3,9 +3,12 @@ import React from 'react';
 import Layout from '@/components/Layout';
 import AnimeCarousel from '@/components/AnimeCarousel';
 import AnimeSection from '@/components/AnimeSection';
-import { recentlyUpdatedAnime, trendingAnime, completedAnime } from '@/data/animeData';
+import { trendingAnime, completedAnime } from '@/data/animeData';
+import { useAnimeData } from '@/hooks/useAnimeData';
 
 const Index = () => {
+  const { data: animeData, isLoading, error } = useAnimeData();
+
   return (
     <Layout>
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
@@ -17,13 +20,16 @@ const Index = () => {
             <AnimeSection 
               title="Recently Updated" 
               viewAllLink="#"
-              animeList={recentlyUpdatedAnime} 
+              animeList={animeData?.latestEpisodeAnimes}
+              isLoading={isLoading}
+              error={error as Error}
             />
           </div>
         </div>
         
         {/* Sidebar Content (30%) */}
         <div className="lg:col-span-2">
+          {/* Latest Completed section */}
           <div className="bg-anime-muted/30 rounded-lg p-4 mb-6">
             <h2 className="text-xl font-bold mb-4">Latest Completed</h2>
             <div className="space-y-4">
@@ -47,6 +53,7 @@ const Index = () => {
             </div>
           </div>
           
+          {/* Trending Now section */}
           <div className="bg-anime-muted/30 rounded-lg p-4">
             <h2 className="text-xl font-bold mb-4">Trending Now</h2>
             <div className="space-y-4">

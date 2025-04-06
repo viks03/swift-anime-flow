@@ -3,7 +3,7 @@ import React from 'react';
 import { Play, Star } from 'lucide-react';
 
 type AnimeCardProps = {
-  id: number;
+  id: string | number;
   title: string;
   image: string;
   episode?: number;
