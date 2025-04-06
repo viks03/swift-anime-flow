@@ -17,6 +17,7 @@ export type AnimeInfo = {
   anilistId: number;
   malId: number;
   name: string;
+  jname: string; // Added jname property
   poster: string;
   description: string;
   stats: AnimeStats;
