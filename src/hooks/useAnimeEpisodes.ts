@@ -23,7 +23,10 @@ const fetchAnimeEpisodes = async (animeId: string): Promise<AnimeEpisodesRespons
     throw new Error('Anime ID is required');
   }
   
-  const response = await fetch(`https://aniwatch-api-jet.vercel.app/api/v2/hianime/anime/${animeId}/episodes`);
+  // Handle trailing slashes in animeId which would break the API call
+  const cleanAnimeId = animeId.replace(/\/$/, '');
+  
+  const response = await fetch(`https://aniwatch-api-jet.vercel.app/api/v2/hianime/anime/${cleanAnimeId}/episodes`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch anime episodes');

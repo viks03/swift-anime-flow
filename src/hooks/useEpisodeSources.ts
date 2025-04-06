@@ -40,14 +40,17 @@ const fetchEpisodeSources = async (episodeId: string): Promise<EpisodeSourcesRes
     throw new Error('Episode ID is required');
   }
   
-  // Handle the case where episodeId has a question mark
-  const formattedEpisodeId = episodeId.includes('?') ? 
-    episodeId.replace('?', '%3F') : 
-    episodeId;
-    
-  const response = await fetch(`https://aniwatch-api-jet.vercel.app/api/v2/hianime/episode/sources?animeEpisodeId=${formattedEpisodeId}`);
+  // The API expects the episodeId to be properly URL encoded
+  // We need to encode it correctly for the API to understand it
+  const encodedEpisodeId = encodeURIComponent(episodeId);
+  
+  const url = `https://aniwatch-api-jet.vercel.app/api/v2/hianime/episode/sources?animeEpisodeId=${encodedEpisodeId}`;
+  console.log(`Requesting URL: ${url}`);
+  
+  const response = await fetch(url);
   
   if (!response.ok) {
+    console.error(`API returned status: ${response.status}`);
     throw new Error('Failed to fetch episode sources');
   }
   
