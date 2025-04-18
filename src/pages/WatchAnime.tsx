@@ -56,27 +56,71 @@ const WatchAnime = () => {
       
       if (Hls.isSupported()) {
         try {
-          // Create and configure a new HLS instance with the correct Referer header for ALL requests
+          // Create a new HLS instance with advanced configuration
           const newHls = new Hls({
-            xhrSetup: function(xhr, url) {
-              // Set Referer header for all XHR requests (m3u8 and ts files)
-              xhr.setRequestHeader('Referer', referer);
-              console.log(`Making HLS request to: ${url} with Referer: ${referer}`);
+            // Use loadPolicy instead of the deprecated settings
+            manifestLoadPolicy: {
+              default: {
+                maxTimeToFirstByteMs: 10000,
+                maxLoadTimeMs: 20000,
+                timeoutRetry: {
+                  maxNumRetry: 4,
+                  retryDelayMs: 500,
+                  maxRetryDelayMs: 2000
+                },
+                errorRetry: {
+                  maxNumRetry: 6,
+                  retryDelayMs: 1000,
+                  maxRetryDelayMs: 8000
+                }
+              }
             },
-            // Add some debug settings to help troubleshoot
+            playlistLoadPolicy: {
+              default: {
+                maxTimeToFirstByteMs: 10000,
+                maxLoadTimeMs: 20000,
+                timeoutRetry: {
+                  maxNumRetry: 4,
+                  retryDelayMs: 500,
+                  maxRetryDelayMs: 2000
+                },
+                errorRetry: {
+                  maxNumRetry: 6,
+                  retryDelayMs: 1000,
+                  maxRetryDelayMs: 8000
+                }
+              }
+            },
+            fragLoadPolicy: {
+              default: {
+                maxTimeToFirstByteMs: 10000,
+                maxLoadTimeMs: 120000, // Longer for segments
+                timeoutRetry: {
+                  maxNumRetry: 4,
+                  retryDelayMs: 500,
+                  maxRetryDelayMs: 2000
+                },
+                errorRetry: {
+                  maxNumRetry: 6,
+                  retryDelayMs: 1000,
+                  maxRetryDelayMs: 8000
+                }
+              }
+            },
+            // Critical: Set up the loader to add Referer header to ALL requests
+            // This is similar to what the PHP proxy does
+            xhrSetup: function(xhr, url) {
+              xhr.setRequestHeader('Referer', referer);
+              console.log(`HLS request to: ${url} with Referer: ${referer}`);
+            },
             debug: true,
             enableWorker: true,
-            lowLatencyMode: false,
-            // Increase timeout and retry values
-            manifestLoadingTimeOut: 20000,
-            manifestLoadingMaxRetry: 4,
-            levelLoadingTimeOut: 20000,
-            levelLoadingMaxRetry: 4,
-            fragLoadingTimeOut: 20000,
-            fragLoadingMaxRetry: 4
+            backBufferLength: 90,  // Keep 90 seconds of back buffer
+            maxBufferLength: 30,   // Buffer up to 30 seconds ahead
+            maxMaxBufferLength: 600 // Allow up to 10 minutes max buffer in case of good connection
           });
           
-          // Handle HLS events for better debugging
+          // Enhanced event handling for better debugging
           newHls.on(Hls.Events.MEDIA_ATTACHED, () => {
             console.log('HLS: Media element attached');
             newHls.loadSource(source.url);
@@ -84,35 +128,62 @@ const WatchAnime = () => {
           });
           
           newHls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-            console.log('HLS: Manifest parsed, found ' + data.levels.length + ' quality levels');
+            console.log(`HLS: Manifest parsed, found ${data.levels.length} quality levels`);
+            console.log('Available levels:', data.levels);
+            
+            // Auto-select the highest quality level
+            newHls.currentLevel = 0; // 0 is typically the highest quality
+            
+            // Attempt autoplay with fallback
             videoRef.current?.play().catch(error => {
               console.error("Autoplay failed:", error);
               toast.error("Autoplay blocked. Please click play to start the video.");
             });
           });
           
+          newHls.on(Hls.Events.LEVEL_LOADED, (event, data) => {
+            console.log(`HLS: Level ${data.level} loaded`);
+          });
+          
+          newHls.on(Hls.Events.FRAG_LOADING, (event, data) => {
+            console.log(`HLS: Loading fragment ${data.frag.sn} of level ${data.frag.level}`);
+          });
+          
+          newHls.on(Hls.Events.FRAG_LOADED, (event, data) => {
+            console.log(`HLS: Fragment ${data.frag.sn} loaded successfully`);
+          });
+          
+          // Comprehensive error handling
           newHls.on(Hls.Events.ERROR, (event, data) => {
-            console.error('HLS error event:', event);
+            console.error('HLS error event:', data.type);
+            console.error('HLS error details:', data.details);
             console.error('HLS error data:', data);
             
             if (data.fatal) {
               switch(data.type) {
                 case Hls.ErrorTypes.NETWORK_ERROR:
                   console.error('Fatal network error', data);
-                  // Try to recover network error
-                  toast.error('Network error. Trying to recover...');
+                  toast.error('Network error. Attempting to recover...');
                   newHls.startLoad();
                   break;
                 case Hls.ErrorTypes.MEDIA_ERROR:
                   console.error('Fatal media error', data);
-                  toast.error('Media error. Trying to recover...');
+                  toast.error('Media playback error. Attempting to recover...');
                   newHls.recoverMediaError();
                   break;
                 default:
                   console.error('Fatal unrecoverable error', data);
-                  toast.error('Unrecoverable playback error. Please try again.');
+                  toast.error('Playback error. Please try another episode or source.');
                   newHls.destroy();
                   break;
+              }
+            } else {
+              // Non-fatal errors - log them but don't show to user unless needed
+              console.warn('Non-fatal HLS error:', data);
+              
+              // If it's a frequent segment loading error, inform the user
+              if (data.details === Hls.ErrorDetails.FRAG_LOAD_ERROR && data.frag) {
+                console.warn(`Problem loading video segment ${data.frag.sn}. Retrying...`);
               }
             }
           });
@@ -126,8 +197,7 @@ const WatchAnime = () => {
         }
       } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
         // For Safari which has native HLS support
-        // Unfortunately, we can't set custom headers for native HLS playback
-        // This might not work with the source that requires a specific Referer
+        toast.warning('Using native HLS player which may not support all features');
         videoRef.current.src = source.url;
         videoRef.current.addEventListener('loadedmetadata', () => {
           videoRef.current?.play().catch(error => {
@@ -135,8 +205,6 @@ const WatchAnime = () => {
             toast.error("Autoplay blocked. Please click play to start the video.");
           });
         });
-        
-        toast.warning('Using native HLS player which may not support authentication. If video doesn\'t play, try a different browser.');
       } else {
         toast.error('Your browser does not support HLS playback');
       }

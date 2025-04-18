@@ -41,7 +41,6 @@ const fetchEpisodeSources = async (episodeId: string): Promise<EpisodeSourcesRes
   }
   
   // The API expects the episodeId to be properly URL encoded
-  // We need to encode it correctly for the API to understand it
   const encodedEpisodeId = encodeURIComponent(episodeId);
   
   const url = `https://aniwatch-api-jet.vercel.app/api/v2/hianime/episode/sources?animeEpisodeId=${encodedEpisodeId}`;
