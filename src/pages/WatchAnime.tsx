@@ -46,38 +46,88 @@ const WatchAnime = () => {
       const source = sourcesData.data.sources[0];
       const referer = sourcesData.data.headers.Referer;
       
+      console.log('Setting up HLS player with source:', source);
+      console.log('Using referer:', referer);
+      
       // Clean up previous HLS instance
       if (hls) {
         hls.destroy();
       }
       
       if (Hls.isSupported()) {
-        const newHls = new Hls({
-          xhrSetup: (xhr) => {
-            xhr.setRequestHeader('Referer', referer);
-          }
-        });
-        
-        newHls.loadSource(source.url);
-        newHls.attachMedia(videoRef.current);
-        newHls.on(Hls.Events.MANIFEST_PARSED, () => {
-          videoRef.current?.play().catch(error => {
-            console.error("Autoplay failed:", error);
-            toast.error("Autoplay blocked. Please click play to start the video.");
+        try {
+          // Create and configure a new HLS instance with the correct Referer header for ALL requests
+          const newHls = new Hls({
+            xhrSetup: function(xhr, url) {
+              // Set Referer header for all XHR requests (m3u8 and ts files)
+              xhr.setRequestHeader('Referer', referer);
+              console.log(`Making HLS request to: ${url} with Referer: ${referer}`);
+            },
+            // Add some debug settings to help troubleshoot
+            debug: true,
+            enableWorker: true,
+            lowLatencyMode: false,
+            // Increase timeout and retry values
+            manifestLoadingTimeOut: 20000,
+            manifestLoadingMaxRetry: 4,
+            levelLoadingTimeOut: 20000,
+            levelLoadingMaxRetry: 4,
+            fragLoadingTimeOut: 20000,
+            fragLoadingMaxRetry: 4
           });
-        });
-        
-        newHls.on(Hls.Events.ERROR, (event, data) => {
-          if (data.fatal) {
-            console.error('HLS error:', data);
-            toast.error('Video playback error. Please try again.');
-            newHls.destroy();
-          }
-        });
-        
-        setHls(newHls);
+          
+          // Handle HLS events for better debugging
+          newHls.on(Hls.Events.MEDIA_ATTACHED, () => {
+            console.log('HLS: Media element attached');
+            newHls.loadSource(source.url);
+            console.log('HLS: Loading source', source.url);
+          });
+          
+          newHls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+            console.log('HLS: Manifest parsed, found ' + data.levels.length + ' quality levels');
+            videoRef.current?.play().catch(error => {
+              console.error("Autoplay failed:", error);
+              toast.error("Autoplay blocked. Please click play to start the video.");
+            });
+          });
+          
+          newHls.on(Hls.Events.ERROR, (event, data) => {
+            console.error('HLS error event:', event);
+            console.error('HLS error data:', data);
+            
+            if (data.fatal) {
+              switch(data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  console.error('Fatal network error', data);
+                  // Try to recover network error
+                  toast.error('Network error. Trying to recover...');
+                  newHls.startLoad();
+                  break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  console.error('Fatal media error', data);
+                  toast.error('Media error. Trying to recover...');
+                  newHls.recoverMediaError();
+                  break;
+                default:
+                  console.error('Fatal unrecoverable error', data);
+                  toast.error('Unrecoverable playback error. Please try again.');
+                  newHls.destroy();
+                  break;
+              }
+            }
+          });
+          
+          // Attach to video element first, then load source
+          newHls.attachMedia(videoRef.current);
+          setHls(newHls);
+        } catch (error) {
+          console.error('Error setting up HLS.js:', error);
+          toast.error('Failed to initialize video player');
+        }
       } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
-        // For Safari
+        // For Safari which has native HLS support
+        // Unfortunately, we can't set custom headers for native HLS playback
+        // This might not work with the source that requires a specific Referer
         videoRef.current.src = source.url;
         videoRef.current.addEventListener('loadedmetadata', () => {
           videoRef.current?.play().catch(error => {
@@ -85,24 +135,30 @@ const WatchAnime = () => {
             toast.error("Autoplay blocked. Please click play to start the video.");
           });
         });
+        
+        toast.warning('Using native HLS player which may not support authentication. If video doesn\'t play, try a different browser.');
       } else {
         toast.error('Your browser does not support HLS playback');
       }
       
       // Add subtitles if available
-      if (sourcesData.data.tracks) {
+      if (sourcesData.data.tracks && videoRef.current) {
+        // First, remove any existing tracks
+        while(videoRef.current.firstChild) {
+          videoRef.current.removeChild(videoRef.current.firstChild);
+        }
+        
         const subtitleTracks = sourcesData.data.tracks.filter(track => 
           track.kind === 'captions' || track.kind === 'subtitles');
           
         subtitleTracks.forEach(track => {
-          if (videoRef.current) {
-            const trackElement = document.createElement('track');
-            trackElement.kind = track.kind;
-            trackElement.label = track.label || 'Unknown';
-            trackElement.src = track.file;
-            trackElement.default = track.default || false;
-            videoRef.current.appendChild(trackElement);
-          }
+          const trackElement = document.createElement('track');
+          trackElement.kind = track.kind;
+          trackElement.label = track.label || 'Unknown';
+          trackElement.src = track.file;
+          trackElement.default = track.default || false;
+          videoRef.current?.appendChild(trackElement);
+          console.log(`Added subtitle track: ${track.label || 'Unknown'}`);
         });
       }
     }
@@ -110,6 +166,7 @@ const WatchAnime = () => {
     // Cleanup function
     return () => {
       if (hls) {
+        console.log('Destroying HLS instance');
         hls.destroy();
       }
     };
@@ -117,6 +174,7 @@ const WatchAnime = () => {
   
   // Handle episode change
   const changeEpisode = (episodeId: string, episodeNumber: number) => {
+    console.log(`Changing to episode ${episodeNumber} with id: ${episodeId}`);
     setCurrentEpisodeId(episodeId);
     setCurrentEpisode(episodeNumber);
     
