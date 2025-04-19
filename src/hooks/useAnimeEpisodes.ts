@@ -26,9 +26,11 @@ const fetchAnimeEpisodes = async (animeId: string): Promise<AnimeEpisodesRespons
   // Handle trailing slashes in animeId which would break the API call
   const cleanAnimeId = animeId.replace(/\/$/, '');
   
+  console.log(`Making request to: https://aniwatch-api-jet.vercel.app/api/v2/hianime/anime/${cleanAnimeId}/episodes`);
   const response = await fetch(`https://aniwatch-api-jet.vercel.app/api/v2/hianime/anime/${cleanAnimeId}/episodes`);
   
   if (!response.ok) {
+    console.error(`API returned error status: ${response.status}`);
     throw new Error('Failed to fetch anime episodes');
   }
   

@@ -55,6 +55,13 @@ const fetchEpisodeSources = async (episodeId: string): Promise<EpisodeSourcesRes
   
   const data = await response.json();
   console.log('API Response for episode sources:', data);
+  
+  // Validate that we have sources
+  if (!data.success || !data.data || !data.data.sources || data.data.sources.length === 0) {
+    console.error('No valid sources found in response:', data);
+    throw new Error('No valid sources found for this episode');
+  }
+  
   return data;
 };
 
@@ -65,5 +72,6 @@ export const useEpisodeSources = (episodeId: string) => {
     enabled: !!episodeId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
+    retry: 2, // Retry failed requests twice
   });
 };
