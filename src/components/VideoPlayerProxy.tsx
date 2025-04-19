@@ -15,8 +15,8 @@ const VideoPlayerProxy = ({ sourcesData, isLoadingSources }: VideoPlayerProxyPro
   const [playbackInitialized, setPlaybackInitialized] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
 
+  // Clean up function to destroy HLS instance when component unmounts
   useEffect(() => {
-    // Clean up function to handle component unmounting
     return () => {
       if (hls) {
         console.log('Cleanup: Destroying HLS instance');
@@ -32,6 +32,7 @@ const VideoPlayerProxy = ({ sourcesData, isLoadingSources }: VideoPlayerProxyPro
 
     // Reset error count when trying new sources
     setErrorCount(0);
+    setPlaybackInitialized(false);
     
     const source = sourcesData.data.sources[0];
     const referer = sourcesData.data.headers.Referer;
@@ -45,56 +46,82 @@ const VideoPlayerProxy = ({ sourcesData, isLoadingSources }: VideoPlayerProxyPro
       hls.destroy();
       setHls(null);
     }
+
+    // Create a new video element to replace the current one
+    // This is a workaround for better cross-browser compatibility
+    if (videoRef.current) {
+      const oldVideo = videoRef.current;
+      const newVideo = document.createElement('video');
+      
+      // Copy attributes from the old video element
+      newVideo.className = oldVideo.className;
+      newVideo.controls = oldVideo.controls;
+      newVideo.playsInline = oldVideo.playsInline;
+      newVideo.crossOrigin = oldVideo.crossOrigin;
+      
+      // Replace the old video with the new one
+      if (oldVideo.parentNode) {
+        oldVideo.parentNode.replaceChild(newVideo, oldVideo);
+        videoRef.current = newVideo;
+      }
+    }
     
     if (Hls.isSupported()) {
       try {
-        // Create a new Hls instance with the Referer header
+        // Create a new Hls instance with custom configuration
         const newHls = new Hls({
+          // Important: Setup proper headers for each request
           xhrSetup: function(xhr, url) {
+            // Always send the required referer header
             xhr.setRequestHeader('Referer', referer);
-            console.log(`HLS Request to: ${url} with Referer: ${referer}`);
+            // Use withCredentials to maintain cookies across requests if needed
+            xhr.withCredentials = false;
           },
           // More permissive configuration for better compatibility
           manifestLoadPolicy: {
             default: {
-              maxTimeToFirstByteMs: 30000, // Increased timeout
-              maxLoadTimeMs: 60000,
+              maxTimeToFirstByteMs: 20000, // 20 seconds timeout
+              maxLoadTimeMs: 30000,
               timeoutRetry: {
-                maxNumRetry: 6, // More retries
-                retryDelayMs: 2000,
-                maxRetryDelayMs: 10000
+                maxNumRetry: 4,
+                retryDelayMs: 1000,
+                maxRetryDelayMs: 8000
               },
               errorRetry: {
-                maxNumRetry: 6,
-                retryDelayMs: 2000,
-                maxRetryDelayMs: 10000
+                maxNumRetry: 4,
+                retryDelayMs: 1000,
+                maxRetryDelayMs: 8000
               }
             }
           },
           fragLoadPolicy: {
             default: {
-              maxTimeToFirstByteMs: 30000,
-              maxLoadTimeMs: 120000,
+              maxTimeToFirstByteMs: 20000,
+              maxLoadTimeMs: 30000,
               timeoutRetry: {
-                maxNumRetry: 8,
-                retryDelayMs: 2000,
-                maxRetryDelayMs: 10000
+                maxNumRetry: 4,
+                retryDelayMs: 1000,
+                maxRetryDelayMs: 8000
               },
               errorRetry: {
-                maxNumRetry: 8,
-                retryDelayMs: 2000,
-                maxRetryDelayMs: 10000
+                maxNumRetry: 4,
+                retryDelayMs: 1000,
+                maxRetryDelayMs: 8000
               }
             }
           },
-          debug: true, // Enable debugging
+          debug: false, // Disable debug logs for production
           enableWorker: true,
-          maxBufferLength: 60,
+          lowLatencyMode: false,
+          maxBufferLength: 30,
           maxMaxBufferLength: 600,
-          backBufferLength: 90
+          maxBufferSize: 60 * 1000 * 1000, // 60MB
+          startLevel: -1, // Auto level selection
+          abrEwmaFastLive: 3.0,
+          abrEwmaSlowLive: 9.0
         });
         
-        // Set up event handlers
+        // Event listeners to track stream status
         newHls.on(Hls.Events.MEDIA_ATTACHED, () => {
           console.log('HLS: Media element attached');
           newHls.loadSource(source.url);
@@ -105,68 +132,58 @@ const VideoPlayerProxy = ({ sourcesData, isLoadingSources }: VideoPlayerProxyPro
           console.log(`HLS: Manifest parsed, found ${data.levels.length} quality levels`);
           setPlaybackInitialized(true);
           
-          // Set initial quality level (auto)
-          newHls.currentLevel = -1;
-          
-          // Try to play the video
-          const playPromise = videoRef.current?.play();
-          if (playPromise !== undefined) {
-            playPromise.catch(error => {
-              console.warn("Autoplay failed:", error);
-              // Don't show error toast for autoplay - this is expected in many browsers
-            });
-          }
+          // Attempt to play automatically
+          videoRef.current?.play().catch(e => {
+            console.log('Auto-play prevented by browser policy', e);
+          });
         });
         
-        newHls.on(Hls.Events.LEVEL_LOADED, () => {
-          console.log('HLS: Level loaded');
+        newHls.on(Hls.Events.FRAG_LOADED, () => {
+          // Fragment loaded successfully - playback is working
           setPlaybackInitialized(true);
         });
         
-        // Error handling with more detailed logging
+        // Error handling
         newHls.on(Hls.Events.ERROR, (event, data) => {
           console.error("HLS error:", data.type, data.details, data);
           
+          // Handle fatal errors
           if (data.fatal) {
             setErrorCount(prev => prev + 1);
             
-            // If we've had too many errors, show a more permanent error
-            if (errorCount > 5) {
-              toast.error('Playback failed after multiple attempts. Try another episode or source.');
+            if (errorCount >= 5) {
+              toast.error('Unable to play video after multiple attempts');
               return;
             }
             
             switch(data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
                 console.error('Fatal network error', data);
-                toast.error('Network error. Attempting to recover...');
+                toast.error('Network error occurred. Retrying...');
                 setTimeout(() => {
                   console.log('Attempting to recover from network error...');
                   newHls.startLoad();
-                }, 2000);
+                }, 1000);
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
                 console.error('Fatal media error', data);
-                toast.error('Media playback error. Attempting to recover...');
+                toast.error('Media error occurred. Retrying...');
                 setTimeout(() => {
                   console.log('Attempting to recover from media error...');
                   newHls.recoverMediaError();
-                }, 2000);
+                }, 1000);
                 break;
               default:
                 console.error('Fatal unrecoverable error', data);
-                toast.error('Playback error. Please try another episode or source.');
+                toast.error('Playback error. Please try again or select another episode');
                 newHls.destroy();
                 setHls(null);
                 break;
             }
-          } else {
-            // Non-fatal error
-            console.warn('Non-fatal HLS error:', data.details);
           }
         });
         
-        // Attach the media element
+        // Attach to video element and store HLS instance
         newHls.attachMedia(videoRef.current);
         setHls(newHls);
         
@@ -177,10 +194,25 @@ const VideoPlayerProxy = ({ sourcesData, isLoadingSources }: VideoPlayerProxyPro
     } else if (videoRef.current.canPlayType('application/vnd.apple.mpegURL')) {
       // Native HLS support (Safari)
       try {
-        videoRef.current.src = source.url;
-        videoRef.current.addEventListener('loadedmetadata', () => {
-          setPlaybackInitialized(true);
-          videoRef.current?.play().catch(e => console.warn('Autoplay failed:', e));
+        // For Safari, we need to set up a fetch with the right headers
+        // and then create a Blob URL
+        fetch(source.url, {
+          headers: {
+            'Referer': referer
+          }
+        })
+        .then(response => response.blob())
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          videoRef.current!.src = url;
+          videoRef.current!.addEventListener('loadedmetadata', () => {
+            setPlaybackInitialized(true);
+            videoRef.current?.play().catch(e => console.warn('Autoplay failed:', e));
+          });
+        })
+        .catch(error => {
+          console.error('Error with native HLS fetch:', error);
+          toast.error('Failed to load video in Safari');
         });
       } catch (error) {
         console.error('Error with native HLS playback:', error);
@@ -190,7 +222,7 @@ const VideoPlayerProxy = ({ sourcesData, isLoadingSources }: VideoPlayerProxyPro
       toast.error('Your browser does not support HLS playback');
     }
     
-    // Add subtitle tracks
+    // Add subtitle tracks if available
     if (sourcesData.data.tracks && videoRef.current) {
       // Remove any existing tracks
       while(videoRef.current.firstChild) {
