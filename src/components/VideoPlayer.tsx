@@ -9,7 +9,13 @@ interface VideoPlayerProps {
 }
 
 const VideoPlayer = ({ sourcesData, isLoadingSources }: VideoPlayerProps) => {
-  return <VideoPlayerProxy sourcesData={sourcesData} isLoadingSources={isLoadingSources} />;
+  // Pass data directly to VideoPlayerProxy component
+  return (
+    <VideoPlayerProxy 
+      sourcesData={sourcesData} 
+      isLoadingSources={isLoadingSources} 
+    />
+  );
 };
 
 export default VideoPlayer;
