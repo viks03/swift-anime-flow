@@ -1,56 +1,59 @@
 
 import React from 'react';
-import Layout from '@/components/Layout';
+import NewLayout from '@/components/NewLayout';
 import AnimeCarousel from '@/components/AnimeCarousel';
 import AnimeSection from '@/components/AnimeSection';
-import { trendingAnime, completedAnime } from '@/data/animeData';
-import { useAnimeData } from '@/hooks/useAnimeData';
-import { toast } from '@/components/ui/sonner';
+import { completedAnime, trendingAnime } from '@/data/animeData';
+import { useAnimeCache } from '@/hooks/useAnimeCache';
+import { toast } from 'sonner';
 
 const Index = () => {
-  const { data, isLoading, error } = useAnimeData();
+  const { cachedData, isLoading, error } = useAnimeCache();
   
-  // Extract the latestEpisodeAnimes from the nested data structure
-  const latestEpisodeAnimes = data?.data?.latestEpisodeAnimes;
-  
-  // Log data for debugging
   React.useEffect(() => {
-    if (data) {
-      console.log('Data structure:', data);
-      console.log('Latest Episode Animes:', latestEpisodeAnimes);
-    }
-    
     if (error) {
       toast.error('Failed to load anime data');
       console.error('Error fetching anime data:', error);
     }
-  }, [data, error, latestEpisodeAnimes]);
+  }, [error]);
+
+  // Convert trending anime data to match AnimeItem format for sidebar
+  const sidebarTrending = trendingAnime.map(anime => ({
+    id: anime.id.toString(),
+    title: anime.title,
+    image: anime.image,
+    rating: anime.rating
+  }));
+
+  const sidebarCompleted = completedAnime.map(anime => ({
+    id: anime.id.toString(),
+    title: anime.title,
+    image: anime.image
+  }));
 
   return (
-    <Layout>
+    <NewLayout>
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
         {/* Main Content (70%) */}
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-5 space-y-8">
           <AnimeCarousel />
           
-          <div className="mt-8">
-            <AnimeSection 
-              title="Recently Updated" 
-              viewAllLink="#"
-              animeList={latestEpisodeAnimes}
-              isLoading={isLoading}
-              error={error as Error}
-            />
-          </div>
+          <AnimeSection 
+            title="Recently Updated" 
+            viewAllLink="/browse"
+            animeList={cachedData}
+            isLoading={isLoading}
+            error={error as Error}
+          />
         </div>
         
         {/* Sidebar Content (30%) */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           {/* Latest Completed section */}
-          <div className="bg-anime-muted/30 rounded-lg p-4 mb-6">
+          <div className="rounded-lg border bg-card p-4">
             <h2 className="text-xl font-bold mb-4">Latest Completed</h2>
             <div className="space-y-4">
-              {completedAnime.map((anime) => (
+              {sidebarCompleted.map((anime) => (
                 <div key={anime.id} className="flex gap-3">
                   <div className="flex-shrink-0 w-16">
                     <img 
@@ -71,10 +74,10 @@ const Index = () => {
           </div>
           
           {/* Trending Now section */}
-          <div className="bg-anime-muted/30 rounded-lg p-4">
+          <div className="rounded-lg border bg-card p-4">
             <h2 className="text-xl font-bold mb-4">Trending Now</h2>
             <div className="space-y-4">
-              {trendingAnime.map((anime) => (
+              {sidebarTrending.map((anime) => (
                 <div key={anime.id} className="flex gap-3">
                   <div className="flex-shrink-0 w-16">
                     <img 
@@ -96,7 +99,7 @@ const Index = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </NewLayout>
   );
 };
 
