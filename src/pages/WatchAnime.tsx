@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import NewLayout from '@/components/NewLayout';
 import { useAnimeDetails } from '@/hooks/useAnimeDetails';
 import { useAnimeEpisodes } from '@/hooks/useAnimeEpisodes';
 import { useEpisodeSources } from '@/hooks/useEpisodeSources';
@@ -81,8 +81,8 @@ const WatchAnime = () => {
   
   if (isLoading && (!animeDetails || !episodesData)) {
     return (
-      <Layout>
-        <div className="container mx-auto px-4 py-8">
+      <NewLayout>
+        <div className="space-y-6">
           <Skeleton className="h-[500px] w-full rounded-md mb-4" />
           <div className="flex justify-between items-center mb-4">
             <Skeleton className="h-8 w-1/3" />
@@ -94,7 +94,7 @@ const WatchAnime = () => {
             ))}
           </div>
         </div>
-      </Layout>
+      </NewLayout>
     );
   }
   
@@ -103,8 +103,8 @@ const WatchAnime = () => {
   const currentEpisodeData = episodes.find(ep => ep.number === currentEpisode);
   
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
+    <NewLayout>
+      <div className="space-y-6">
         <VideoPlayer 
           sourcesData={sourcesData} 
           isLoadingSources={isLoadingSources} 
@@ -127,7 +127,7 @@ const WatchAnime = () => {
           onEpisodeSelect={handleEpisodeChange}
         />
       </div>
-    </Layout>
+    </NewLayout>
   );
 };
 
